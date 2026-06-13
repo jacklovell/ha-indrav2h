@@ -63,3 +63,52 @@ class V2HOperatingModeSelect(Indrav2hEntity, SelectEntity):
     def options(self):
         return list(V2H_MODES)
 
+
+class V2HScheduleSelect(IndraV2HEntity, SelectEntity):
+    """Select the preset schedule to be used."""
+    def __init__(self, coordinator, config_entry):
+        super().__init__(coordinator, config_entry)
+        self.device = coordinator.api.device
+        self.schedule = coordinator.api.schedule
+        # Available presets already loaded on coordinator.api init.
+        self._current_schedule = None
+
+    @property
+    def unique_id(self):
+        """Return a unique ID to use for this entity."""
+        return (
+            f"{self.config_entry.entry_id}-{self.device.serial}-active_schedule"
+        )
+
+    @property
+    def device_info(self):
+        """Return information to link this entity with the correct device."""
+        return {
+            "name": NAME,
+            "identifiers": {(DOMAIN, self.coordinator.api.device.serial)}
+            }
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return "Indra V2H Active Schedule"
+
+    @property
+    def current_option(self):
+        """Return the state of the sensor."""
+        return self._current_schedule
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+        # Make sure the available schedules are up to date first.
+        await self.schedule.refresh_schedules()
+        await self.schedule.set_schedule(self.device, option)
+        self.async_schedule_update_ha_state()
+        return
+
+    @property
+    def options(self):
+        return self.schedule.presets
+
+    async def async_update(self):
+        self._current_schedule = await self.schedule.get_schedule(self.device)
