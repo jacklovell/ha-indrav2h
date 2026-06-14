@@ -87,7 +87,8 @@ class Indrav2hDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         _LOGGER.debug("Trying async_update_data")
         try:
-            return await self.api.refresh()
+            await self.api.refresh_device()
+            await self.api.refresh_stats()
         except Exception as ex:
             _LOGGER.debug("Exception fired: async_update_data")
             _LOGGER.error(
