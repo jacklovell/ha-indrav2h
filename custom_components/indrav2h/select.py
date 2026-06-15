@@ -14,7 +14,12 @@ async def async_setup_entry(hass, entry, async_add_devices):
     """Setup select platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     # platform = entity_platform.async_get_current_platform()
-    async_add_devices([V2HOperatingModeSelect(coordinator, entry)])
+    async_add_devices(
+        [
+            V2HOperatingModeSelect(coordinator, entry),
+            V2HScheduleSelect(coordinator, entry),
+        ]
+    )
     
 
 
@@ -104,11 +109,11 @@ class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
         await self.schedule.refresh_schedules()
         await self.schedule.set_schedule(self.device, option)
         self.async_schedule_update_ha_state()
-        return
 
     @property
     def options(self):
-        return self.schedule.presets
+        return sorted(self.schedule.presets.keys())
 
     async def async_update(self):
-        self._current_schedule = await self.schedule.get_schedule(self.device)
+        current_schedule = await self.schedule.get_schedule(self.device)
+        self._current_schedule = current_schedule["id"]
