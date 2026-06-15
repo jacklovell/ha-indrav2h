@@ -64,7 +64,7 @@ class V2HOperatingModeSelect(Indrav2hEntity, SelectEntity):
         return list(V2H_MODES)
 
 
-class V2HScheduleSelect(IndraV2HEntity, SelectEntity):
+class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     """Select the preset schedule to be used."""
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator, config_entry)
