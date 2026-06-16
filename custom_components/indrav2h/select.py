@@ -1,4 +1,5 @@
 """Select platform for IndraV2H."""
+from datetime import timedelta
 import voluptuous as vol
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import entity_platform
@@ -9,6 +10,8 @@ from pyindrav2h import V2H_MODES
 from .const import DOMAIN, NAME
 from .entity import Indrav2hEntity
 
+SCAN_INTERVAL = timedelta(seconds=60)
+
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Setup select platform."""
@@ -18,7 +21,8 @@ async def async_setup_entry(hass, entry, async_add_devices):
         [
             V2HOperatingModeSelect(coordinator, entry),
             V2HScheduleSelect(coordinator, entry),
-        ]
+        ],
+        update_before_add=True,
     )
     
 
@@ -71,12 +75,20 @@ class V2HOperatingModeSelect(Indrav2hEntity, SelectEntity):
 
 class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     """Select the preset schedule to be used."""
+
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator, config_entry)
         self.device = coordinator.api.device
         self.schedule = coordinator.api.schedule
         # Available presets already loaded on coordinator.api init.
         self._current_schedule = None
+
+    # Indrav2hEntity is a subclass of CoordinatorEntity which sets the
+    # should_poll property to False. We need to poll for the active
+    # schedule though.
+    @property
+    def should_poll(self):
+        return True
 
     @property
     def unique_id(self):
