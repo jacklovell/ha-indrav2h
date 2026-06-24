@@ -7,6 +7,6 @@
   "dependencies": [],
   "config_flow": true,
   "codeowners": ["@creatingwake"],
-  "requirements": ["pyindrav2h@git+https://github.com/jacklovell/pyindrav2h.git@62cdb92"],
+  "requirements": ["pyindrav2h@git+https://github.com/jacklovell/pyindrav2h.git@309f987"],
   "loggers": ["custom_components.indrav2h"]
 }
