@@ -49,6 +49,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     conn = Connection(username, password)
     await conn.checkAPICreds()
     client = v2hClient(conn)
+    # Populate device and schedule attributes.
+    await client.refresh()
 
     coordinator = Indrav2hDataUpdateCoordinator(hass, client=client)
     await coordinator.async_refresh()

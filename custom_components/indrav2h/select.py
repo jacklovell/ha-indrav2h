@@ -1,4 +1,5 @@
 """Select platform for IndraV2H."""
+from datetime import timedelta
 import voluptuous as vol
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import entity_platform
@@ -9,12 +10,20 @@ from pyindrav2h import V2H_MODES
 from .const import DOMAIN, NAME
 from .entity import Indrav2hEntity
 
+SCAN_INTERVAL = timedelta(seconds=60)
+
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Setup select platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     # platform = entity_platform.async_get_current_platform()
-    async_add_devices([V2HOperatingModeSelect(coordinator, entry)])
+    async_add_devices(
+        [
+            V2HOperatingModeSelect(coordinator, entry),
+            V2HScheduleSelect(coordinator, entry),
+        ],
+        update_before_add=True,
+    )
     
 
 
@@ -64,14 +73,23 @@ class V2HOperatingModeSelect(Indrav2hEntity, SelectEntity):
         return list(V2H_MODES)
 
 
-class V2HScheduleSelect(IndraV2HEntity, SelectEntity):
+class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     """Select the preset schedule to be used."""
+
+
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator, config_entry)
         self.device = coordinator.api.device
         self.schedule = coordinator.api.schedule
         # Available presets already loaded on coordinator.api init.
         self._current_schedule = None
+
+    # Indrav2hEntity is a subclass of CoordinatorEntity which sets the
+    # should_poll property to False. We need to poll for the active
+    # schedule though.
+    @property
+    def should_poll(self):
+        return True
 
     @property
     def unique_id(self):
@@ -104,11 +122,11 @@ class V2HScheduleSelect(IndraV2HEntity, SelectEntity):
         await self.schedule.refresh_schedules()
         await self.schedule.set_schedule(self.device, option)
         self.async_schedule_update_ha_state()
-        return
 
     @property
     def options(self):
-        return self.schedule.presets
+        return sorted(self.schedule.presets.keys())
 
     async def async_update(self):
-        self._current_schedule = await self.schedule.get_schedule(self.device)
+        current_schedule = await self.schedule.get_schedule(self.device)
+        self._current_schedule = current_schedule["id"]
