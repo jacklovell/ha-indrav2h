@@ -79,7 +79,6 @@ class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator, config_entry)
         self.device = coordinator.api.device
-        self.schedule = coordinator.api.schedule
         # Available presets already loaded on coordinator.api init.
         self._current_schedule = None
 
@@ -118,14 +117,14 @@ class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         # Make sure the available schedules are up to date first.
-        await self.schedule.refresh_schedules()
-        await self.schedule.set_schedule(self.device, option)
+        await self.device._schedule.refresh_schedules()
+        await self.device._schedule.set_schedule(self.device, option)
         self.async_schedule_update_ha_state()
 
     @property
     def options(self):
-        return sorted(self.schedule.presets.keys())
+        return sorted(self.device._schedule.presets.keys())
 
     async def async_update(self):
-        current_schedule = await self.schedule.get_schedule(self.device)
+        current_schedule = await self.device._schedule.get_schedule(self.device)
         self._current_schedule = current_schedule["id"]
