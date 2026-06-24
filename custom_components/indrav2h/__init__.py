@@ -49,8 +49,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     conn = Connection(username, password)
     await conn.checkAPICreds()
     client = v2hClient(conn)
-    # Populate device and schedule attributes.
-    await client.refresh()
 
     coordinator = Indrav2hDataUpdateCoordinator(hass, client=client)
     await coordinator.async_refresh()
@@ -88,7 +86,7 @@ class Indrav2hDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         _LOGGER.debug("Trying async_update_data")
         try:
-            await self.api.refresh()
+            return await self.api.refresh()
         except Exception as ex:
             _LOGGER.debug("Exception fired: async_update_data")
             _LOGGER.error(
