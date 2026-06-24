@@ -80,15 +80,6 @@ class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator, config_entry)
         self.device = coordinator.api.device
-        # Available presets already loaded on coordinator.api init.
-        self._current_schedule = None
-
-    # Indrav2hEntity is a subclass of CoordinatorEntity which sets the
-    # should_poll property to False. We need to poll for the active
-    # schedule though.
-    @property
-    def should_poll(self):
-        return True
 
     @property
     def unique_id(self):
@@ -113,19 +104,12 @@ class V2HScheduleSelect(Indrav2hEntity, SelectEntity):
     @property
     def current_option(self):
         """Return the state of the sensor."""
-        return self._current_schedule
+        return self.device.loadedSchedule
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        # Make sure the available schedules are up to date first.
-        await self.device._schedule.refresh_schedules()
-        await self.device._schedule.set_schedule(self.device, option)
-        self.async_schedule_update_ha_state()
+        await self.device.set_loaded_schedule(option)
 
     @property
     def options(self):
         return sorted(self.device._schedule.presets.keys())
-
-    async def async_update(self):
-        current_schedule = await self.device._schedule.get_schedule(self.device)
-        self._current_schedule = current_schedule["id"]
