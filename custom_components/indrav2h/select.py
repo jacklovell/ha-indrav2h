@@ -1,5 +1,4 @@
 """Select platform for IndraV2H."""
-from datetime import timedelta
 import voluptuous as vol
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import entity_platform
@@ -9,8 +8,6 @@ from pyindrav2h import V2H_MODES
 
 from .const import DOMAIN, NAME
 from .entity import Indrav2hEntity
-
-SCAN_INTERVAL = timedelta(seconds=60)
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
@@ -22,7 +19,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
             V2HOperatingModeSelect(coordinator, entry),
             V2HScheduleSelect(coordinator, entry),
         ],
-        update_before_add=True,
     )
     
 
